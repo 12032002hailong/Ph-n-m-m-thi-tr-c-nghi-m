@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"
+            integrity="sha512-3j3VU6WC5rPQB4Ld1jnLV7Kd5xr+cq9avvhwqzbH/taCRNURoeEpoPBK9pDyeukwSxwRPJ8fDgvYXd6SkaZ2TA=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"></script>
+    </head>
+    <body>
+        <div class="px-6 h-screen text-gray-800">
+            <div
+                class="flex xl:justify-center lg:justify-between justify-center items-center
+                flex-wrap h-full g-6">
+                <div
+                    class="xl:ml-20 xl:w-5/12 lg:w-5/12 md:w-8/12 mb-12 md:mb-0 border-solid
+                    border-2 border-[#223671] px-7 py-5 rounded-md shadow-lg shadow-indigo-500/40">
+                    <form id="changeInfoForm">
+                        <h1 class="font-semibold mb-10 text-5xl text-center">
+                            Change Information
+                        </h1>
+                        <div class="mb-6">
+                            <input
+                                type="text"
+                                class="form-control block w-full px-4 py-2 text-xl font-normal
+                                text-gray-700 bg-white bg-clip-padding border border-solid
+                                border-gray-300 rounded transition ease-in-out m-0
+                                focus:text-gray-700 focus:bg-white focus:border-blue-600
+                                focus:outline-none"
+                                id="newUsername"
+                                name="newUsername"
+                                placeholder="New Username"
+                                />
+                        </div>
+
+                        <!-- Password input -->
+                        <div class="mb-6" id="passwordInputDiv">
+                            <input
+                                type="password"
+                                class="form-control block w-full px-4 py-2 text-xl font-normal
+                                text-gray-700 bg-white bg-clip-padding border border-solid
+                                border-gray-300 rounded transition ease-in-out m-0
+                                focus:text-gray-700 focus:bg-white focus:border-blue-600
+                                focus:outline-none"
+                                id="newPassword"
+                                name="newPassword"
+                                placeholder="New Password"
+                                />
+                        </div>
+
+                        <div class="mb-6" id="passwordInputDiv">
+                            <input
+                                type="password"
+                                class="form-control block w-full px-4 py-2 text-xl font-normal
+                                text-gray-700 bg-white bg-clip-padding border border-solid
+                                border-gray-300 rounded transition ease-in-out m-0
+                                focus:text-gray-700 focus:bg-white focus:border-blue-600
+                                focus:outline-none"
+                                id="newConfirmedPassword"
+                                name="newConfirmedPassword"
+                                placeholder="New Confirmed Password"
+                                />
+                        </div>
+
+                        <div class="text-center">
+                            <button
+                                type="submit"
+                                class="inline-block px-7 py-3 bg-[#223671] text-white font-medium
+                                text-sm leading-snug uppercase rounded shadow-md hover:bg-blue-700
+                                hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none
+                                focus:ring-0 active:bg-blue-800 active:shadow-lg transition
+                                duration-150 ease-in-out">
+                                Update
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </body>
+
+    <script>
+        $(document).ready(function () {
+            if (!$.cookie("username")) {
+                window.location.href = "index.html";
+            }
+        });
+        $("#changeInfoForm").validate({
+            rules: {
+                newConfirmedPassword: {
+                    equalTo: "#newPassword",
+                },
+            },
+            submitHandler: function () {
+                var values = $("#changeInfoForm").serialize();
+                var accounts = JSON.parse(localStorage.getItem("accounts"));
+
+                if (
+                    values.split("&")[0].split("=")[1] !== "" &&
+                    values.split("&")[0].split("=")[1] !== $.cookie("username")
+                ) {
+                    accounts.map((a) => {
+                        if (a.username === $.cookie("username")) {
+                            a.username = values.split("&")[0].split("=")[1];
+                        }
+                    });
+
+                    localStorage.setItem("accounts", JSON.stringify(accounts));
+                    $.cookie("username", values.split("&")[0].split("=")[1], {
+                        expires: 10,
+                    });
+                }
+
+                if (values.split("&")[1].split("=")[1] !== "") {
+                    accounts.map((a) => {
+                        if (a.username === $.cookie("username")) {
+                            a.password = values.split("&")[1].split("=")[1];
+                        }
+                    });
+
+                    localStorage.setItem("accounts", JSON.stringify(accounts));
+                }
+
+                window.location.href = "home.html";
+
+                return false;
+            },
+        });
+    </script>
+</html>

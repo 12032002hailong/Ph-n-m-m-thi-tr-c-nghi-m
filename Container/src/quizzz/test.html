@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Test</title>
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/flowbite@1.5.4/dist/flowbite.min.css"
+            />
+
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"
+            integrity="sha512-3j3VU6WC5rPQB4Ld1jnLV7Kd5xr+cq9avvhwqzbH/taCRNURoeEpoPBK9pDyeukwSxwRPJ8fDgvYXd6SkaZ2TA=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"></script>
+    </head>
+    <body>
+        <div class="container mx-auto h-full flex justify-center items-center">
+            <div class="flex flex-col items-start w-3/5 h-[30rem] py-4">
+                <div class="timer w-full h-[1.3rem]">
+                    <div class="display flex flex-col justify-end items-end">
+                        <h1
+                            class="display__time-left font-thin text-4xl color-[#223671]"></h1>
+                    </div>
+                </div>
+                <h4 class="mt-10 text-xl quizNo"></h4>
+                <div class="my-4 text-2xl quizContent h-[5rem]"></div>
+                <form id="testForm" class="w-full">
+                    <div
+                        class="flex flex-col w-full h-[15rem] quizChoices"></div>
+                    <div
+                        class="flex justify-between w-full mt-4 text-white shrink quizNavigation"></div>
+                </form>
+            </div>
+        </div>
+    </body>
+    <script>
+        var questions = [];
+        var timeLeft = 0;
+        var currentQuestions = 1;
+        function unEscape(htmlStr) {
+            htmlStr = htmlStr.replace(/&lt;/g, "<");
+            htmlStr = htmlStr.replace(/&gt;/g, ">");
+            htmlStr = htmlStr.replace(/&quot;/g, '"');
+            htmlStr = htmlStr.replace(/&#039;/g, "'");
+            htmlStr = htmlStr.replace(/&amp;/g, "&");
+            htmlStr = htmlStr.replace(/&rsquo;/g, "'");
+            htmlStr = htmlStr.replace(/&lsquo;/g, "'");
+            htmlStr = htmlStr.replace(/%20/g, " ");
+            return htmlStr;
+        }
+        function onPrevQuiz() {
+            currentQuestions -= 1;
+            $(".quizNo").text(
+                `Question ${currentQuestions} of ${questions.length}`
+            );
+            $(".quizContent").text(
+                unEscape(questions[currentQuestions - 1].question)
+            );
+
+            $(`#question${currentQuestions + 1}`).hide();
+            $(`#question${currentQuestions}`).show();
+
+            if (currentQuestions === 1) {
+                $("#prevBtn")
+                    .attr("disabled", true)
+                    .removeClass(
+                        "hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg"
+                    );
+                $("#nextBtn").show();
+                $("#submitBtn").hide();
+            } else if (
+                currentQuestions > 1 ||
+                currentQuestions < questions.length
+            ) {
+                $("#nextBtn").show();
+                $("#submitBtn").hide();
+                $("#prevBtn")
+                    .attr("disabled", false)
+                    .addClass(
+                        "hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg"
+                    );
+                $("#nextBtn")
+                    .attr("disabled", false)
+                    .addClass(
+                        "hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg"
+                    );
+            }
+        }
+        function onNextQuiz() {
+            currentQuestions += 1;
+            $(".quizNo").text(
+                `Question ${currentQuestions} of ${questions.length}`
+            );
+            $(".quizContent").text(
+                unEscape(questions[currentQuestions - 1].question)
+            );
+
+            $(`#question${currentQuestions - 1}`).hide();
+            $(`#question${currentQuestions}`).show();
+
+            if (currentQuestions === questions.length) {
+                $("#nextBtn").hide();
+                $("#submitBtn").show();
+            } else if (
+                currentQuestions > 1 ||
+                currentQuestions < questions.length
+            ) {
+                $("#nextBtn").show();
+                $("#submitBtn").hide();
+                $("#prevBtn")
+                    .attr("disabled", false)
+                    .addClass(
+                        "hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg"
+                    );
+                $("#nextBtn")
+                    .attr("disabled", false)
+                    .addClass(
+                        "hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg"
+                    );
+            } else {
+                $("#nextBtn").show();
+                $("#submitBtn").hide();
+            }
+        }
+        $(document).ready(function () {
+            questions = $.cookie("currentTest")
+                ? JSON.parse($.cookie("currentTest"))
+                : null;
+
+            if (!questions) {
+                window.location.href = "home.html";
+            }
+
+            if (questions) {
+                $(".quizNo").text(
+                    `Question ${currentQuestions} of ${questions.length}`
+                );
+                $(".quizContent").text(
+                    unEscape(questions[currentQuestions - 1].question)
+                );
+
+                questions.map((q, i) => {
+                    var listChoices = [
+                        ...q.incorrect_answers,
+                        q.correct_answer,
+                    ].sort(() => Math.random() - 0.5);
+
+                    let quizzes = `<div
+                                    id="question${i + 1}"
+                                    key="${i + 1}"
+                                    class="flex flex-col w-full h-full"
+                                >`;
+
+                    listChoices.map(
+                        (c, index) =>
+                            (quizzes += `<div class="flex items-center mb-4"><input id="question${
+                                i + 1
+                            }-${c}" type="radio" name="question${
+                                i + 1
+                            }" value="${c}" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 focus:ring-2">
+                    <label for="question${
+                        i + 1
+                    }-${c}" class="ml-2 text-sm font-medium text-gray-900">${unEscape(
+                                c
+                            )}</label></div>`)
+                    );
+
+                    quizzes += `</div>`;
+
+                    $(".quizChoices").append(quizzes);
+
+                    $(`#question${i + 1}`).hide();
+                });
+
+                $(`#question${currentQuestions}`).show();
+
+                $(".quizNavigation").append(`<button
+                                                id="prevBtn"
+                                                type="button"
+                                                class="w-[49%] inline-block px-7 py-3 bg-[#223671] text-white font-medium text-sm leading-snug uppercase rounded shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none transition duration-150 ease-in-out"
+                                                onclick="onPrevQuiz()"
+                                            >
+                                                Previous
+                                            </button>
+                                            <button
+                                                id="nextBtn"
+                                                type="button"
+                                                class="w-[49%] inline-block px-7 py-3 bg-[#223671] text-white font-medium text-sm leading-snug uppercase rounded shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none transition duration-150 ease-in-out disabled:opacity-50"
+                                                onclick="onNextQuiz()"
+                                            >
+                                                Next
+                                            </button>
+                                            <button
+                                                id="submitBtn"
+                                                type="submit"
+                                                class="w-[49%] inline-block px-7 py-3 bg-[#F26526] text-white font-medium text-sm leading-snug uppercase rounded shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none transition duration-150 ease-in-out disabled:opacity-50"
+                                            >
+                                                Submit
+                                            </button>`);
+
+                $("#prevBtn").attr("disabled", true);
+                $("#nextBtn").addClass(
+                    "hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg"
+                );
+                $("#submitBtn").hide();
+
+                if ($.cookie("timeLeft")) {
+                    timeLeft = Number($.cookie("timeLeft"));
+                } else {
+                    timeLeft = questions.length;
+                }
+
+                var countDownDate =
+                    new Date().getTime() + timeLeft * 60 * 1000 + 10;
+
+                // Update the count down every 1 second
+                var x = setInterval(function () {
+                    // Get today's date and time
+                    var now = new Date().getTime();
+
+                    // Find the distance between now and the count down date
+                    var distance = countDownDate - now;
+
+                    // Time calculations for days, hours, minutes and seconds
+                    var hours = Math.floor(
+                        (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+                    );
+                    var minutes = Math.floor(
+                        (distance % (1000 * 60 * 60)) / (1000 * 60)
+                    );
+                    var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                    $(".display__time-left").text(
+                        `${hours > 0 ? hours + ":" : ""}${
+                            minutes > 0
+                                ? minutes > 9
+                                    ? minutes + ":"
+                                    : "0" + minutes + ":"
+                                : "00:"
+                        }${seconds > 9 ? seconds : "0" + seconds}`
+                    );
+
+                    if (distance < 11 * 1000) {
+                        $(".display__time-left").addClass("text-red-600");
+                    }
+
+                    // If the count down is over, write some text
+                    if (distance < 1000) {
+                        clearInterval(x);
+                    }
+
+                    $.cookie("timeLeft", distance / 60 / 1000, {
+                        expires: (distance / 60 / 1000 + 1) / 1440,
+                    });
+                }, 1000);
+            }
+        });
+
+        $("#testForm").validate({
+            submitHandler: function () {
+                var values = $("#testForm").serialize();
+
+                if (values) {
+                    if (confirm("Are you sure you want to submit test?")) {
+                        if (localStorage.getItem("history")) {
+                            var history = JSON.parse(
+                                localStorage.getItem("history")
+                            );
+                            history = [
+                                ...history,
+                                {
+                                    question: questions.length,
+                                    category: $.cookie("currentTestType")
+                                        .split("&")[1]
+                                        .split("=")[1],
+                                    difficulty:
+                                        $.cookie("currentTestType")
+                                            .split("&")[2]
+                                            .split("=")[1] === ""
+                                            ? "any"
+                                            : $.cookie("currentTestType")
+                                                  .split("&")[2]
+                                                  .split("=")[1],
+                                    score: getScore(values),
+                                },
+                            ];
+                            localStorage.setItem(
+                                "history",
+                                JSON.stringify(history)
+                            );
+                        } else {
+                            localStorage.setItem(
+                                "history",
+                                JSON.stringify([
+                                    {
+                                        question: questions.length,
+                                        category: $.cookie("currentTestType")
+                                            .split("&")[1]
+                                            .split("=")[1],
+                                        difficulty:
+                                            $.cookie("currentTestType")
+                                                .split("&")[2]
+                                                .split("=")[1] === ""
+                                                ? "any"
+                                                : $.cookie("currentTestType")
+                                                      .split("&")[2]
+                                                      .split("=")[1],
+                                        score: getScore(values),
+                                    },
+                                ])
+                            );
+                        }
+                        $.removeCookie("currentTest");
+                        $.removeCookie("currentTestType");
+                        $.removeCookie("timeLeft");
+
+                        window.location.href = "home.html";
+                    }
+                }
+
+                return false;
+            },
+        });
+
+        function getScore(submittedTest) {
+            let score = 0;
+            questions = $.cookie("currentTest")
+                ? JSON.parse($.cookie("currentTest"))
+                : null;
+            for (var sub of submittedTest.split("&")) {
+                if (
+                    unEscape(sub.split("=")[1]) ===
+                    questions[
+                        Number(sub.substring(8, sub.split("=")[0].length)) - 1
+                    ].correct_answer
+                ) {
+                    score += 1;
+                }
+            }
+
+            return score;
+        }
+    </script>
+</html>
